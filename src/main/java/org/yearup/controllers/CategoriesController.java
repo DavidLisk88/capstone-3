@@ -1,6 +1,7 @@
 package org.yearup.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.yearup.configurations.DatabaseConfig;
 import org.yearup.data.CategoryDao;
@@ -69,18 +70,19 @@ public class CategoriesController
     }
 
     // add the appropriate annotation for a get action
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public Category getById(@PathVariable int id)
     {
         // get the category by id
+        Category foundCategory = categoryDao.getById(id);
+        System.out.println("Found Category ID " + foundCategory);
 
-
-        return null;
+        return foundCategory;
     }
 
     // the url to return all products in category 1 would look like this
     // https://localhost:8080/categories/1/products
-    @GetMapping("{categoryId}/products")
+    @GetMapping("/{categoryId}/products")
     public List<Product> getProductsById(@PathVariable Integer categoryId)
     {
         // get a list of product by categoryId
@@ -102,24 +104,38 @@ public class CategoriesController
 
     // add annotation to call this method for a POST action
     // add annotation to ensure that only an ADMIN can call this function
-    public Category addCategory(@RequestBody Category category)
+    @PostMapping("/add/{categoryId}")
+    public Category create (@RequestBody Category category, @PathVariable Integer categoryId)
     {
         // insert the category
-        return null;
+
+        Category newCategory = categoryDao.create(category, categoryId);
+        System.out.println("Added new category: " + newCategory);
+        return category;
+
     }
 
     // add annotation to call this method for a PUT (update) action - the url path must include the categoryId
     // add annotation to ensure that only an ADMIN can call this function
-    public void updateCategory(@PathVariable int id, @RequestBody Category category)
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Category> updateCategory(@PathVariable int id, @RequestBody Category category)
     {
         // update the category by id
+        categoryDao.updateCategory(id, category);
+        if (category == null){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(category);
     }
 
 
     // add annotation to call this method for a DELETE action - the url path must include the categoryId
     // add annotation to ensure that only an ADMIN can call this function
-    public void deleteCategory(@PathVariable int id)
+    @DeleteMapping("/delete/{categoryId}")
+    public void deleteCategory(@PathVariable int categoryId)
     {
         // delete the category by id
+        categoryDao.deleteCategory(categoryId);
+        System.out.println("Deleted: " + getById(categoryId));
     }
 }
