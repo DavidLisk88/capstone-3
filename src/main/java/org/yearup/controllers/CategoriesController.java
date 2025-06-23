@@ -1,48 +1,103 @@
 package org.yearup.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.yearup.configurations.DatabaseConfig;
 import org.yearup.data.CategoryDao;
 import org.yearup.data.ProductDao;
+import org.yearup.data.mysql.MySqlCategoryDao;
+import org.yearup.data.mysql.MySqlProductDao;
 import org.yearup.models.Category;
 import org.yearup.models.Product;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 // add the annotations to make this a REST controller
 // add the annotation to make this controller the endpoint for the following url
     // http://localhost:8080/categories
 // add annotation to allow cross site origin requests
+@RestController
+@RequestMapping("/categories")
 public class CategoriesController
 {
     private CategoryDao categoryDao;
     private ProductDao productDao;
 
 
+
     // create an Autowired controller to inject the categoryDao and ProductDao
 
-    // add the appropriate annotation for a get action
-    public List<Category> getAll()
-    {
-        // find and return all categories
-        return null;
+    @Autowired
+    public CategoriesController(DatabaseConfig config) throws SQLException{
+        this.categoryDao = new MySqlCategoryDao(config.dataSource());
+        this.productDao = new MySqlProductDao(config.dataSource());
     }
 
     // add the appropriate annotation for a get action
+    @GetMapping
+    // Change "int" to "Integer". int cannot be null. Integer is an object that works like a box and can be null.
+    public List<Category> getAllCategories(@RequestParam(required = false) Integer categoryId, @RequestParam(required = false) String name)
+    {
+        // find and return all categories
+
+        List<Category> allCategories = categoryDao.getAllCategories(categoryId, name);
+        List<Category> categoryResults = new ArrayList<>();
+
+        // for every category in the array list,
+        // if the categoryId in the parameter(url) is not specified,
+        // if specified parameters are not found, then no categories are found
+        // otherwise, add all found categories to the categoryResults array
+        for (Category categoryList : allCategories){
+          boolean foundCategories = true;
+
+          if (categoryId != null && categoryList.getCategoryId() != categoryId){
+              foundCategories = false;
+            }
+          if (name != null && !categoryList.getName().equalsIgnoreCase(name)){
+              foundCategories = false;
+          }
+          if (foundCategories){
+              categoryResults.add(categoryList);
+          }
+        }
+        // now we return the category results.
+        return categoryResults;
+    }
+
+    // add the appropriate annotation for a get action
+    @GetMapping("{id}")
     public Category getById(@PathVariable int id)
     {
         // get the category by id
+
+
         return null;
     }
 
     // the url to return all products in category 1 would look like this
     // https://localhost:8080/categories/1/products
     @GetMapping("{categoryId}/products")
-    public List<Product> getProductsById(@PathVariable int categoryId)
+    public List<Product> getProductsById(@PathVariable Integer categoryId)
     {
         // get a list of product by categoryId
-        return null;
+        List<Product> products = productDao.listByCategoryId(categoryId);
+        List<Product> productResults = new ArrayList<>();
+
+        for (Product product : products){
+            boolean found = true;
+
+            if (product.getCategoryId() != categoryId){
+                found = false;
+            }
+            if (found){
+                productResults.add(product);
+            }
+        }
+        return productResults;
     }
 
     // add annotation to call this method for a POST action

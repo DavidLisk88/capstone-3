@@ -2,7 +2,7 @@ package org.yearup.models;
 
 public class Category
 {
-    private int categoryId;
+    private Integer categoryId;
     private String name;
     private String description;
 
@@ -22,7 +22,7 @@ public class Category
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId)
+    public void setCategoryId(Integer categoryId)
     {
         this.categoryId = categoryId;
     }

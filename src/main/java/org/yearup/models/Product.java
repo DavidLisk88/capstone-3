@@ -7,7 +7,7 @@ public class Product
     private int productId;
     private String name;
     private BigDecimal price;
-    private int categoryId;
+    private Integer categoryId;
     private String description;
     private String color;
     private int stock;
@@ -66,7 +66,7 @@ public class Product
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId)
+    public void setCategoryId(Integer categoryId)
     {
         this.categoryId = categoryId;
     }

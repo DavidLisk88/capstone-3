@@ -5,24 +5,46 @@ import org.yearup.data.CategoryDao;
 import org.yearup.models.Category;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
 {
-    public MySqlCategoryDao(DataSource dataSource)
+    private final Connection connection;
+
+    public MySqlCategoryDao(DataSource dataSource) throws SQLException
     {
         super(dataSource);
+        this.connection = dataSource.getConnection();
     }
 
     @Override
-    public List<Category> getAllCategories()
+    public List<Category> getAllCategories(Integer categoryId, String name)
     {
+        List<Category> categories = new ArrayList<>();
         // get all categories
-        return null;
+        String sql = "SELECT category_id, name, description FROM categories";
+
+        try(PreparedStatement statement = connection.prepareStatement(sql)){
+            ResultSet results = statement.executeQuery();
+            while(results.next()){
+                Category category = new Category();
+                category.setCategoryId(results.getInt("category_id"));
+                category.setName(results.getString("name"));
+                category.setDescription(results.getString("description"));
+                categories.add(category);
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        return categories;
     }
+
 
     @Override
     public Category getById(int categoryId)
