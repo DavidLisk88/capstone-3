@@ -10,7 +10,7 @@ public interface ProductDao
     List<Product> search(Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice, String color);
     List<Product> listByCategoryId(Integer categoryId);
     Product getById(int productId);
-    Product create(Product product);
+    Product createProduct(Product product);
     void update(int productId, Product product);
     void delete(int productId);
 }

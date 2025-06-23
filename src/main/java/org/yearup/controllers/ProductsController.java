@@ -65,13 +65,13 @@ public class ProductsController
         }
     }
 
-    @PostMapping()
+    @PostMapping("/add")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Product addProduct(@RequestBody Product product)
+    public Product createProduct(@RequestBody Product product)
     {
         try
         {
-            return productDao.create(product);
+            return productDao.createProduct(product);
         }
         catch(Exception ex)
         {
@@ -85,7 +85,7 @@ public class ProductsController
     {
         try
         {
-            productDao.create(product);
+            productDao.createProduct(product);
         }
         catch(Exception ex)
         {
