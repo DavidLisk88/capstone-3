@@ -93,20 +93,21 @@ public class ProductsController
         }
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/delete/{productId}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public void deleteProduct(@PathVariable int id)
+    public void deleteProduct(@PathVariable int productId)
     {
-        try
-        {
-            var product = productDao.getById(id);
+        try {
+            var product = productDao.getById(productId);
 
-            if(product == null)
+            if(product == null){
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+            else {
+                productDao.deleteProduct(productId);
+            }
 
-            productDao.delete(id);
-        }
-        catch(Exception ex)
+        } catch(Exception ex)
         {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
