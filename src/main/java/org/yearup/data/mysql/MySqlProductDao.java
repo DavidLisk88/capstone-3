@@ -157,7 +157,7 @@ public class MySqlProductDao extends MySqlDaoBase implements ProductDao
     }
 
     @Override
-    public void update(int productId, Product product)
+    public void updateProduct(int productId, Product product)
     {
         String sql = "UPDATE products" +
                 " SET name = ? " +
