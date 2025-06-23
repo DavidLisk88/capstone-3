@@ -3,12 +3,14 @@ package org.yearup.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.yearup.models.Product;
 import org.yearup.data.ProductDao;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -43,18 +45,19 @@ public class ProductsController
         }
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/cat/{categoryId}")
     @PreAuthorize("permitAll()")
-    public Product getById(@PathVariable int id )
+    public List<Product> listByCategoryId(@PathVariable Integer categoryId )
     {
+
         try
         {
-            var product = productDao.getById(id);
+            List<Product> products = productDao.listByCategoryId(categoryId);
 
-            if(product == null)
+            if(products == null || products.isEmpty())
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
-            return product;
+            return products;
         }
         catch(Exception ex)
         {
