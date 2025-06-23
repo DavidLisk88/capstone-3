@@ -65,29 +65,25 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
         } catch (SQLException e){
             e.printStackTrace();
         }
-        return null;
+        return new Category();
     }
 
     @Override
-    public Category create(Category category, Integer categoryId)
+    public Category create(Category category)
     {
         // create a new category
         String sql = "INSERT INTO categories (category_id, name, description) VALUES (?, ?, ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)){
-            statement.setInt(1, categoryId);
+            statement.setInt(1, category.getCategoryId());
             statement.setString(2, category.getName());
             statement.setString(3, category.getDescription());
-
-            try (ResultSet results = statement.executeQuery()){
-                return mapRow(results);
-            }
-
+            statement.executeUpdate();
+            return category;
         } catch (SQLException e){
             e.printStackTrace();
         }
-
-        return category;
+        return null;
     }
 
     @Override
@@ -114,7 +110,12 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
         String sql = "DELETE FROM categories WHERE category_id = ?";
         try(PreparedStatement statement = connection.prepareStatement(sql)){
             statement.setInt(1, categoryId);
-            statement.executeUpdate();
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Delete Successful");
+            } else {
+                System.out.println("No category found with ID: " + categoryId);
+            }
         } catch (SQLException e){
             e.printStackTrace();
         }

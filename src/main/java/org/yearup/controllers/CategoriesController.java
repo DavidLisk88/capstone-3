@@ -2,6 +2,7 @@ package org.yearup.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.yearup.configurations.DatabaseConfig;
 import org.yearup.data.CategoryDao;
@@ -41,6 +42,7 @@ public class CategoriesController
     // add the appropriate annotation for a get action
     @GetMapping
     // Change "int" to "Integer". int cannot be null. Integer is an object that works like a box and can be null.
+    @PreAuthorize("permitAll()")
     public List<Category> getAllCategories(@RequestParam(required = false) Integer categoryId, @RequestParam(required = false) String name)
     {
         // find and return all categories
@@ -71,11 +73,12 @@ public class CategoriesController
 
     // add the appropriate annotation for a get action
     @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
     public Category getById(@PathVariable int id)
     {
         // get the category by id
         Category foundCategory = categoryDao.getById(id);
-        System.out.println("Found Category ID " + foundCategory);
+        System.out.println("Found: " + foundCategory);
 
         return foundCategory;
     }
@@ -83,6 +86,7 @@ public class CategoriesController
     // the url to return all products in category 1 would look like this
     // https://localhost:8080/categories/1/products
     @GetMapping("/{categoryId}/products")
+    @PreAuthorize("permitAll()")
     public List<Product> getProductsById(@PathVariable Integer categoryId)
     {
         // get a list of product by categoryId
@@ -104,20 +108,21 @@ public class CategoriesController
 
     // add annotation to call this method for a POST action
     // add annotation to ensure that only an ADMIN can call this function
-    @PostMapping("/add/{categoryId}")
-    public Category create (@RequestBody Category category, @PathVariable Integer categoryId)
+    @PostMapping("/add")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Category create (@RequestBody Category category)
     {
         // insert the category
-
-        Category newCategory = categoryDao.create(category, categoryId);
+        Category newCategory = categoryDao.create(category);
         System.out.println("Added new category: " + newCategory);
-        return category;
+        return newCategory;
 
     }
 
     // add annotation to call this method for a PUT (update) action - the url path must include the categoryId
     // add annotation to ensure that only an ADMIN can call this function
     @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Category> updateCategory(@PathVariable int id, @RequestBody Category category)
     {
         // update the category by id
@@ -132,10 +137,11 @@ public class CategoriesController
     // add annotation to call this method for a DELETE action - the url path must include the categoryId
     // add annotation to ensure that only an ADMIN can call this function
     @DeleteMapping("/delete/{categoryId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public void deleteCategory(@PathVariable int categoryId)
     {
         // delete the category by id
-        categoryDao.deleteCategory(categoryId);
         System.out.println("Deleted: " + getById(categoryId));
+        categoryDao.deleteCategory(categoryId);
     }
 }
