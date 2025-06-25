@@ -2,23 +2,26 @@ package org.yearup.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.yearup.data.ProductDao;
 import org.yearup.data.ShoppingCartDao;
 import org.yearup.data.UserDao;
+import org.yearup.models.Product;
 import org.yearup.models.ShoppingCart;
 import org.yearup.models.User;
 
 import java.security.Principal;
+import java.util.Map;
 
 // convert this class to a REST controller
 // only logged in users should have access to these actions
 @RestController
 @RequestMapping("/cart")
+@PreAuthorize("isAuthenticated()")
 public class ShoppingCartController
 {
     // a shopping cart requires
@@ -26,12 +29,22 @@ public class ShoppingCartController
     private UserDao userDao;
     private ProductDao productDao;
 
+    public ShoppingCartController(UserDao userDao, ProductDao productDao, ShoppingCartDao shoppingCartDao){
+        this.userDao = userDao;
+        this.productDao = productDao;
+        this.shoppingCartDao = shoppingCartDao;
+    }
 
+    // Helper method to authenticate the user that is logged in
+    private User getCurrentUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return userDao.getByUserName(username);
+    }
 
     // each method in this controller requires a Principal object as a parameter
-    @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('ROLE_USER', 'ROLE_ADMIN')")
-    public ShoppingCart getCart(int userId, Principal principal)
+    @GetMapping
+    public ShoppingCart getCart(Principal principal)
     {
         try
         {
@@ -39,10 +52,11 @@ public class ShoppingCartController
             String userName = principal.getName();
             // find database user by userId
             User user = userDao.getByUserName(userName);
-            userId = user.getId();
+            int userId = user.getId();
+
 
             // use the shoppingcartDao to get all items in the cart and return the cart
-            return null;
+            return shoppingCartDao.getByUserId(userId);
         }
         catch(Exception e)
         {
@@ -52,15 +66,39 @@ public class ShoppingCartController
 
     // add a POST method to add a product to the cart - the url should be
     // https://localhost:8080/cart/products/15 (15 is the productId to be added
+    @PostMapping("/products/{productId}")
+    public void addProductToCart (@PathVariable int productId){
+        // grab the user and then add the item tot the cart based on the user.
+        User user = getCurrentUser();
+        shoppingCartDao.addItem(user.getId(), productId);
+    }
 
 
 
     // add a PUT method to update an existing product in the cart - the url should be
     // https://localhost:8080/cart/products/15 (15 is the productId to be updated)
     // the BODY should be a ShoppingCartItem - quantity is the only value that will be updated
+    @PutMapping("/products/{productId}")
+    public void updateQuantity(@PathVariable int productId, @RequestBody Map<String, Integer> body){
+
+        // Error handling, if there is no quantity found to update
+        if(!body.containsKey("quantity")){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No quantity found");
+        }
+        // Grab the quantity from the body map, find the user, and then update the information of the product from that user.
+        int quantity = body.get("quantity");
+        User user = getCurrentUser();
+        shoppingCartDao.updateQuantity(user.getId(), productId, quantity);
+    }
 
 
     // add a DELETE method to clear all products from the current users cart
     // https://localhost:8080/cart
+
+    @DeleteMapping("/delete")
+    public void clearCart(){
+        User user = getCurrentUser();
+        shoppingCartDao.clearCart(user.getId());
+    }
 
 }

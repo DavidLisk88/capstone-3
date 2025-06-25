@@ -7,6 +7,11 @@ import java.util.Map;
 public class ShoppingCart
 {
     private Map<Integer, ShoppingCartItem> items = new HashMap<>();
+    private BigDecimal total;
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
 
     public Map<Integer, ShoppingCartItem> getItems()
     {
