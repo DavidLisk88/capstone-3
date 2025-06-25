@@ -1,5 +1,6 @@
 package org.yearup.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -29,6 +30,7 @@ public class ShoppingCartController
     private UserDao userDao;
     private ProductDao productDao;
 
+    @Autowired
     public ShoppingCartController(UserDao userDao, ProductDao productDao, ShoppingCartDao shoppingCartDao){
         this.userDao = userDao;
         this.productDao = productDao;
@@ -59,18 +61,29 @@ public class ShoppingCartController
             return shoppingCartDao.getByUserId(userId);
         }
         catch(Exception e)
-        {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
+        { e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
         }
     }
 
     // add a POST method to add a product to the cart - the url should be
     // https://localhost:8080/cart/products/15 (15 is the productId to be added
     @PostMapping("/products/{productId}")
-    public void addProductToCart (@PathVariable int productId){
-        // grab the user and then add the item tot the cart based on the user.
-        User user = getCurrentUser();
-        shoppingCartDao.addItem(user.getId(), productId);
+    public void addItem(@PathVariable int productId)
+    {
+        try
+        {
+
+            User user = getCurrentUser();
+            int userId = user.getId();
+
+
+            shoppingCartDao.addItem(userId, productId);
+        }
+        catch (Exception e)
+        {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to add item to cart.");
+        }
     }
 
 

@@ -1,6 +1,7 @@
 package org.yearup.data.mysql;
 
 import org.springframework.security.core.parameters.P;
+import org.springframework.stereotype.Repository;
 import org.yearup.data.ProductDao;
 import org.yearup.data.ShoppingCartDao;
 import org.yearup.models.Product;
@@ -19,15 +20,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+@Repository
 public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDao {
 
     private final Connection connection;
     private ProductDao productDao;
 
-    public MySqlShoppingCartDao (DataSource config) throws SQLException {
+    public MySqlShoppingCartDao (DataSource config, ProductDao productDao) throws SQLException {
         super(config);
         this.connection = config.getConnection();
+        this.productDao = productDao;
     }
+
 
     @Override
     public ShoppingCart getCart (int userId, Principal principal){
@@ -131,6 +136,32 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
         }
     }
 
+    @Override
+    public void updateQuantity(int userId, int productId, int quantity) {
+        String sql = "UPDATE shopping_cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
 
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, quantity);
+            stmt.setInt(2, userId);
+            stmt.setInt(3, productId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Override
+    public void clearCart(int userId) {
+        String sql = "DELETE FROM shopping_cart WHERE user_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
+
+
+
