@@ -1,6 +1,7 @@
 package org.yearup.data.mysql;
 
 import org.springframework.security.core.parameters.P;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.yearup.data.ProductDao;
 import org.yearup.data.ShoppingCartDao;
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 
-@Repository
+@Component
 public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDao {
 
     private final Connection connection;
@@ -81,6 +82,7 @@ public class MySqlShoppingCartDao extends MySqlDaoBase implements ShoppingCartDa
                 product.setProductId(results.getInt("product_id"));
                 product.setName(results.getString("name"));
                 product.setPrice(results.getBigDecimal("price"));
+                product.setCategoryId(results.getInt("category_id"));
                 product.setDescription(results.getString("description"));
                 product.setColor(results.getString("color"));
                 product.setStock(results.getInt("stock"));

@@ -32,7 +32,6 @@ public class CategoriesController
 
 
     // create an Autowired controller to inject the categoryDao and ProductDao
-
     @Autowired
     public CategoriesController(DatabaseConfig config) throws SQLException{
         this.categoryDao = new MySqlCategoryDao(config.dataSource());

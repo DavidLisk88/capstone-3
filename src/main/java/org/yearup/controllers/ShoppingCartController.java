@@ -69,7 +69,7 @@ public class ShoppingCartController
     // add a POST method to add a product to the cart - the url should be
     // https://localhost:8080/cart/products/15 (15 is the productId to be added
     @PostMapping("/products/{productId}")
-    public void addItem(@PathVariable int productId)
+    public ShoppingCart addItem(@PathVariable int productId)
     {
         try
         {
@@ -79,6 +79,7 @@ public class ShoppingCartController
 
 
             shoppingCartDao.addItem(userId, productId);
+            return shoppingCartDao.getByUserId(user.getId());
         }
         catch (Exception e)
         {
@@ -92,7 +93,7 @@ public class ShoppingCartController
     // https://localhost:8080/cart/products/15 (15 is the productId to be updated)
     // the BODY should be a ShoppingCartItem - quantity is the only value that will be updated
     @PutMapping("/products/{productId}")
-    public void updateQuantity(@PathVariable int productId, @RequestBody Map<String, Integer> body){
+    public ShoppingCart updateQuantity(@PathVariable int productId, @RequestBody Map<String, Integer> body){
 
         // Error handling, if there is no quantity found to update
         if(!body.containsKey("quantity")){
@@ -102,16 +103,18 @@ public class ShoppingCartController
         int quantity = body.get("quantity");
         User user = getCurrentUser();
         shoppingCartDao.updateQuantity(user.getId(), productId, quantity);
+        return shoppingCartDao.getByUserId(user.getId());
     }
 
 
     // add a DELETE method to clear all products from the current users cart
     // https://localhost:8080/cart
 
-    @DeleteMapping("/delete")
-    public void clearCart(){
+    @DeleteMapping
+    public ShoppingCart clearCart(){
         User user = getCurrentUser();
         shoppingCartDao.clearCart(user.getId());
+        return shoppingCartDao.getByUserId(user.getId());
     }
 
 }
