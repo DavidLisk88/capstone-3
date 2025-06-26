@@ -35,7 +35,7 @@ public class ProfileController {
     }
 
     @GetMapping
-    public Profile getByUserId(@PathVariable int userId){
+    public Profile getByUserId(){
 try {
     User user = getCurrentUser();
 
@@ -54,28 +54,25 @@ try {
 
 
 
-    @PostMapping("/create")
-    public Profile create (@RequestBody Profile profile) {
-
+    @PostMapping
+    public Profile create(@RequestBody Profile profile) {
         try {
             User user = getCurrentUser();
             profile.setUserId(user.getId());
 
             Profile existingProfile = profileDao.getByUserId(user.getId());
-            if(existingProfile != null){
+            if (existingProfile != null) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Profile already exists");
+            }
 
-            } return profileDao.create(profile);
+            return profileDao.create(profile);
 
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error creating profile");
         }
-        catch (RuntimeException ex){
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
-        }
-
-
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public void update (@RequestBody Profile profile){
         try{
             User user = getCurrentUser();

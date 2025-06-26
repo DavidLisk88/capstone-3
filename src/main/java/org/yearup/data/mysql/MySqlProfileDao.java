@@ -101,7 +101,7 @@ public Profile getByUserId (int userId) {
         } catch (SQLException e){
             e.printStackTrace();
         }
-      return new Profile();
+      return null;
 }
 
 }
