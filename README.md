@@ -166,7 +166,151 @@ Show new and updated category in postman.
 
 
 
-## 
+## Product Bugs
+
+
+### Fix output for ListByCategoryId
+
+```java
+    @GetMapping("/cat/{categoryId}")
+    @PreAuthorize("permitAll()")
+    public List<Product> listByCategoryId(@PathVariable Integer categoryId )
+    {
+
+        try
+        {
+            List<Product> products = productDao.listByCategoryId(categoryId);
+
+            if(products == null || products.isEmpty())
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+            return products;
+        }
+        catch(Exception ex)
+        {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
+        }
+    }
+```
+
+
+
+### Fix product search functionality 
+
+```java
+    @Override
+    public List<Product> search(Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice, String color)
+    {
+        List<Product> products = new ArrayList<>();
+
+        String sql = "SELECT * FROM products " +
+                "WHERE (category_id = ? OR ? = -1) " +
+                "AND (price >= ? OR ? = -1)" +
+                "   AND (price <= ? OR ? = -1) " +
+                "   AND (color = ? OR ? = '') ";
+
+        categoryId = categoryId == null ? -1 : categoryId;
+        minPrice = minPrice == null ? new BigDecimal("-1") : minPrice;
+        maxPrice = maxPrice == null ? new BigDecimal("-1") : maxPrice;
+        color = color == null ? "" : color;
+
+        try (Connection connection = getConnection())
+        {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, categoryId);
+            statement.setInt(2, categoryId);
+            statement.setBigDecimal(3, minPrice);
+            statement.setBigDecimal(4, minPrice);
+            statement.setBigDecimal(5, maxPrice);
+            statement.setBigDecimal(6, maxPrice);
+            statement.setString(7, color);
+            statement.setString(8, color);
+
+            ResultSet row = statement.executeQuery();
+
+            while (row.next())
+            {
+                Product product = mapRow(row);
+                products.add(product);
+            }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e);
+        }
+
+        return products;
+    }
+```
+
+
+
+
+### Make sure update product does not add a new product 
+
+```java
+/// CONTROLLER
+
+    @PutMapping("/update/{productId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public void updateProduct(@PathVariable int productId, @RequestBody Product product)
+    {
+        try
+        {
+            productDao.updateProduct(productId, product);
+        }
+        catch(Exception ex)
+        {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
+        }
+    }
+
+
+/// ______________________
+/// DAO 
+
+   @Override
+    public void updateProduct(int productId, Product product)
+    {
+        String sql = "UPDATE products" +
+                " SET name = ? " +
+                "   , price = ? " +
+                "   , category_id = ? " +
+                "   , description = ? " +
+                "   , color = ? " +
+                "   , image_url = ? " +
+                "   , stock = ? " +
+                "   , featured = ? " +
+                " WHERE product_id = ?;";
+
+        try (Connection connection = getConnection())
+        {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, product.getName());
+            statement.setBigDecimal(2, product.getPrice());
+            statement.setInt(3, product.getCategoryId());
+            statement.setString(4, product.getDescription());
+            statement.setString(5, product.getColor());
+            statement.setString(6, product.getImageUrl());
+            statement.setInt(7, product.getStock());
+            statement.setBoolean(8, product.isFeatured());
+            statement.setInt(9, productId);
+
+            statement.executeUpdate();
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+```
+
+
+
+## Shopping Cart 
+
+
+### 
 
 
 
