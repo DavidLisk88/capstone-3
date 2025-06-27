@@ -26,7 +26,6 @@ public class DatabaseConfig
 
     @Bean
     public ShoppingCartDao shoppingCartDao(DataSource dataSource, ProductDao productDao) throws SQLException {
-        System.out.println("Creating ShoppingCartDao bean...");
         return new MySqlShoppingCartDao(dataSource, productDao);
 
     }
