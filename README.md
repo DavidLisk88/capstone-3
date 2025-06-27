@@ -1,6 +1,20 @@
 # EASY SHOP
 _______________________________
 
+## Register 
+"username": "david",
+"password": "password",
+"confirmPassword": "password",
+"role": "ROLE_USER"
+
+
+## Logging in 
+"username": "david",
+"password": "password"
+
+_______________________________
+
+
 ## Categories Controller
 
 ### Annotations
@@ -399,6 +413,137 @@ http://localhost:8080/cart/products/16
 
 
 
+## User Profile
+
+### Implement a getByUserId method and Update method
+
+```java
+@Override
+    public void updateProfile (Profile profile) throws SQLException {
+        String sql = "UPDATE profiles SET first_name = ?, last_name = ?, " +
+                "phone = ?, email = ?, address = ?, city = ?, state = ?, zip = ? " +
+                "WHERE user_id = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)){
+            statement.setString(1, profile.getFirstName());
+            statement.setString(2, profile.getLastName());
+            statement.setString(3, profile.getPhone());
+            statement.setString(4, profile.getEmail());
+            statement.setString(5, profile.getAddress());
+            statement.setString(6, profile.getCity());
+            statement.setString(7, profile.getState());
+            statement.setString(8, profile.getZip());
+            statement.setInt(9, profile.getUserId());
+            statement.executeUpdate();
+        }
+
+
+
+}
+
+@Override
+public Profile getByUserId (int userId) {
+        String sql = "SELECT * FROM profiles WHERE user_id = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)){
+            statement.setInt(1, userId);
+            ResultSet results = statement.executeQuery();
+            if (results.next()){
+                Profile profile = new Profile();
+                profile.setUserId(results.getInt("user_id"));
+                profile.setFirstName(results.getString("first_name"));
+                profile.setLastName(results.getString("last_name"));
+                profile.setPhone(results.getString("phone"));
+                profile.setEmail(results.getString("email"));
+                profile.setAddress(results.getString("address"));
+                profile.setCity(results.getString("city"));
+                profile.setState(results.getString("state"));
+                profile.setZip(results.getString("zip"));
+                return profile;
+
+            } else {
+                return null ;
+            }
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+      return null;
+}
+```
+
+
+
+### Implement ProfileController
+
+```java
+    @GetMapping
+    public Profile getByUserId(){
+try {
+    User user = getCurrentUser();
+
+    Profile profile = profileDao.getByUserId(user.getId());
+
+    if (profile == null){
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found");
+    }
+    return profileDao.getByUserId(profile.getUserId());
+
+} catch (Exception e){
+    throw new ResponseStatusException( HttpStatus.INTERNAL_SERVER_ERROR, "Error");
+}
+    }
+
+
+
+
+    @PostMapping
+    public Profile create(@RequestBody Profile profile) {
+        try {
+            User user = getCurrentUser();
+            profile.setUserId(user.getId());
+
+            Profile existingProfile = profileDao.getByUserId(user.getId());
+            if (existingProfile != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Profile already exists");
+            }
+
+            return profileDao.create(profile);
+
+        } catch (RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error creating profile");
+        }
+    }
+
+    @PutMapping
+    public void update (@RequestBody Profile profile){
+        try{
+            User user = getCurrentUser();
+            profile.setUserId(user.getId());
+
+            profileDao.updateProfile(profile);
+        } catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
+        }
+    }
+
+
+}
+```
+
+____________________________________________________________________________________________________________
+
+## BONUS CODE
+
+#### Added a getCurrentUser method to authenticate the current logged in user 
+
+```java
+    private User getCurrentUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return userDao.getByUserName(username);
+    }
+```
 
 
 
